@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NLS Logistique</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<style>
+:root{--primary:#6366f1;--primary-dark:#4f46e5;--secondary:#10b981;--danger:#ef4444;--warning:#f59e0b;--dark:#1e293b;--gray:#64748b;--gray-light:#e2e8f0;--card-bg:#fff;--shadow-lg:0 10px 15px -3px rgba(0,0,0,0.1);--radius:12px;--transition:all 0.3s ease}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;color:var(--dark);line-height:1.6}
+.app-container{max-width:1200px;margin:0 auto;padding:20px;min-height:100vh}
+.header{text-align:center;margin-bottom:30px;color:white}
+.header h1{font-size:2.5rem;font-weight:800;text-shadow:2px 2px 4px rgba(0,0,0,0.2)}
+.header p{font-size:0.85rem;opacity:0.7;margin-top:4px}
+.tabs-nav{display:flex;gap:8px;margin-bottom:25px;background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);padding:8px;border-radius:16px;flex-wrap:wrap}
+.tab-btn{flex:1;min-width:140px;padding:14px 20px;border:none;border-radius:12px;cursor:pointer;font-size:1rem;font-weight:600;color:white;background:transparent;transition:var(--transition);display:flex;align-items:center;justify-content:center;gap:8px}
+.tab-btn:hover{background:rgba(255,255,255,0.2)}
+.tab-btn.active{background:white;color:var(--primary);box-shadow:var(--shadow-lg);transform:translateY(-2px)}
+.tab-panel{display:none;animation:fadeIn 0.4s ease}
+.tab-panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.card{background:var(--card-bg);border-radius:var(--radius);padding:28px;margin-bottom:20px;box-shadow:var(--shadow-lg)}
+.card-title{font-size:1.4rem;font-weight:700;color:var(--dark);margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.card-title .icon{color:var(--primary);font-size:1.5rem}
+.form-group{margin-bottom:20px}
+.form-group label{display:block;font-weight:600;margin-bottom:8px;color:var(--dark);font-size:0.95rem}
+.form-group label .required{color:var(--danger)}
+input,select,textarea{width:100%;padding:12px 16px;border:2px solid var(--gray-light);border-radius:10px;font-size:1rem;transition:var(--transition);background:white;color:var(--dark)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(99,102,241,0.15)}
+.btn{padding:12px 24px;border:none;border-radius:10px;font-size:1rem;font-weight:600;cursor:pointer;transition:var(--transition);display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:white;box-shadow:0 4px 14px rgba(99,102,241,0.4)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(99,102,241,0.5)}
+.btn-success{background:linear-gradient(135deg,var(--secondary),#059669);color:white}
+.btn-success:hover{transform:translateY(-2px)}
+.btn-danger{background:linear-gradient(135deg,var(--danger),#dc2626);color:white}
+.btn-danger:hover{transform:translateY(-2px)}
+.btn-warning{background:linear-gradient(135deg,var(--warning),#d97706);color:white}
+.btn-secondary{background:var(--gray-light);color:var(--dark)}
+.btn-sm{padding:8px 16px;font-size:0.9rem}
+.dynamic-inputs-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:12px}
+.dynamic-input-item{display:flex;align-items:center;gap:8px}
+.index-badge{background:var(--primary);color:white;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;flex-shrink:0}
+.table-responsive{overflow-x:auto;border-radius:10px;border:1px solid var(--gray-light)}
+table{width:100%;border-collapse:collapse;font-size:0.95rem}
+thead{background:linear-gradient(135deg,var(--primary),var(--primary-dark))}
+thead th{color:white;padding:14px 16px;text-align:left;font-weight:600;white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--gray-light);transition:var(--transition)}
+tbody tr:hover{background:#f1f5f9}
+tbody td{padding:12px 16px;color:var(--dark)}
+.alert{padding:14px 18px;border-radius:10px;margin-bottom:16px;display:flex;align-items:center;gap:10px;font-weight:500}
+.alert-success{background:#dcfce7;color:#166534;border-left:4px solid var(--secondary)}
+.alert-danger{background:#fee2e2;color:#991b1b;border-left:4px solid var(--danger)}
+.alert-warning{background:#fef3c7;color:#92400e;border-left:4px solid var(--warning)}
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+@media(max-width:768px){.grid-2,.grid-4{grid-template-columns:1fr}.tabs-nav{flex-direction:column}.tab-btn{min-width:100%}.header h1{font-size:1.8rem}.card{padding:18px}}
+.stat-card{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:white;padding:24px;border-radius:var(--radius);box-shadow:var(--shadow-lg);transition:var(--transition)}
+.stat-card:hover{transform:translateY(-4px)}
+.stat-card .stat-label{font-size:0.9rem;opacity:0.9;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px}
+.stat-card .stat-value{font-size:2rem;font-weight:800}
+.stat-card .stat-sub{font-size:0.85rem;opacity:0.8;margin-top:4px}
+.stat-card.green{background:linear-gradient(135deg,var(--secondary),#059669)}
+.stat-card.red{background:linear-gradient(135deg,var(--danger),#dc2626)}
+.stat-card.purple{background:linear-gradient(135deg,#8b5cf6,#7c3aed)}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px}
+.modal-overlay.active{display:flex}
+.modal-content{background:white;border-radius:var(--radius);padding:28px;max-width:500px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:modalSlide 0.3s ease}
+@keyframes modalSlide{from{opacity:0;transform:scale(0.9) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.modal-header h3{font-size:1.3rem;font-weight:700}
+.modal-close{background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--gray);width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:var(--transition)}
+.modal-close:hover{background:var(--gray-light);color:var(--danger)}
+.search-bar{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.search-bar input,.search-bar select{flex:1;min-width:200px}
+.empty-state{text-align:center;padding:40px 20px;color:var(--gray)}
+.empty-state .icon{font-size:3rem;margin-bottom:12px;opacity:0.5}
+.divider{height:1px;background:var(--gray-light);margin:24px 0}
+.toast-container{position:fixed;top:20px;right:20px;z-index:2000;display:flex;flex-direction:column;gap:10px}
+.toast{padding:14px 20px;border-radius:10px;color:white;font-weight:600;box-shadow:var(--shadow-lg);animation:toastSlide 0.4s ease;display:flex;align-items:center;gap:10px;max-width:350px}
+@keyframes toastSlide{from{opacity:0;transform:translateX(100px)}to{opacity:1;transform:translateX(0)}}
+.toast-success{background:linear-gradient(135deg,var(--secondary),#059669)}
+.toast-danger{background:linear-gradient(135deg,var(--danger),#dc2626)}
+.upsell-section{background:linear-gradient(135deg,#fef3c7,#fde68a);border:2px solid var(--warning);border-radius:10px;padding:16px;margin-top:16px}
+.upsell-section h4{color:#92400e;margin-bottom:10px;font-weight:700}
+.upsell-item{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:white;border-radius:8px;margin-bottom:8px}
+.order-item{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:#f8fafc;border-radius:10px;margin-bottom:10px;border-left:4px solid var(--primary);transition:var(--transition)}
+.order-item:hover{background:#f1f5f9;transform:translateX(4px)}
+.order-item .order-info{flex:1}
+.order-item .order-actions{display:flex;gap:8px}
+.steps-indicator{display:flex;justify-content:center;gap:8px;margin-bottom:24px}
+.step-dot{width:12px;height:12px;border-radius:50%;background:var(--gray-light);transition:var(--transition)}
+.step-dot.active{background:var(--primary);transform:scale(1.2)}
+.step-dot.completed{background:var(--secondary)}
+.summary-box{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:2px solid #7dd3fc;border-radius:10px;padding:20px;margin-top:20px}
+.summary-box h4{color:#0369a1;margin-bottom:12px}
+.summary-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #bae6fd}
+.summary-row:last-child{border-bottom:none;font-weight:700;font-size:1.1rem;color:var(--primary)}
+.price-input-wrapper{position:relative}
+.price-input-wrapper input{padding-left:50px}
+.price-input-wrapper .currency-symbol{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--gray);font-weight:600}
+.model-list-item{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:#f8fafc;border-radius:10px;margin-bottom:10px;border-left:4px solid var(--primary)}
+.model-list-item .model-info{flex:1}
+.model-list-item .model-info strong{display:block;color:var(--dark);font-size:1.05rem}
+.model-list-item .model-info span{color:var(--gray);font-size:0.85rem}
+.model-list-item .model-actions{display:flex;gap:8px}
+.date-picker-wrapper{display:flex;gap:12px;align-items:center;margin-bottom:20px;flex-wrap:wrap}
+.hidden{display:none!important}
+@media print{body{background:white}.tabs-nav,.btn,.modal-overlay,.toast-container{display:none!important}.card{box-shadow:none;border:1px solid #ddd}}
+</style>
+</head>
+<body>
+<div class="app-container">
+<div class="header"><h1>📦 NLS Logistique</h1><p>developed by Safwann Nait-chabane</p></div>
+<div class="tabs-nav">
+<button class="tab-btn active" data-tab="tab1" onclick="switchTab('tab1')"><span>⚙️</span> Configuration Stock</button>
+<button class="tab-btn" data-tab="tab2" onclick="switchTab('tab2')"><span>🛒</span> Vente & Expédition</button>
+<button class="tab-btn" data-tab="tab3" onclick="switchTab('tab3')"><span>📊</span> Dashboard & Compta</button>
+</div>
+
+<div id="tab1" class="tab-panel active">
+<div class="card slide-up">
+<div class="card-title"><span class="icon">⚙️</span>Configuration d'un nouveau modèle</div>
+<div class="steps-indicator">
+<div class="step-dot active" id="step-dot-1"></div>
+<div class="step-dot" id="step-dot-2"></div>
+<div class="step-dot" id="step-dot-3"></div>
+<div class="step-dot" id="step-dot-4"></div>
+</div>
+<div id="step1" class="step-section">
+<div class="form-group"><label>Question 1 : Nom du modèle <span class="required">*</span></label><input type="text" id="modelName" placeholder="Ex: Modèle Shark, Air Max, etc." /></div>
+<div class="form-group"><label>Prix d'achat unitaire (coût d'achat par paire) <span class="required">*</span></label><div class="price-input-wrapper"><span class="currency-symbol">DA</span><input type="number" id="modelCostPrice" placeholder="Ex: 2500" min="0" step="0.01" /></div></div>
+<div class="form-group"><label>Prix de vente standard <span class="required">*</span></label><div class="price-input-wrapper"><span class="currency-symbol">DA</span><input type="number" id="modelSellPrice" placeholder="Ex: 5500" min="0" step="0.01" /></div></div>
+<div class="form-group"><label>Frais de livraison par commande</label><div class="price-input-wrapper"><span class="currency-symbol">DA</span><input type="number" id="modelDeliveryFee" placeholder="Ex: 300" min="0" step="0.01" value="0" /></div></div>
+<button class="btn btn-primary" onclick="goToStep(2)">Suivant →</button>
+</div>
+<div id="step2" class="step-section hidden">
+<div class="form-group"><label>Question 2 : Combien y a-t-il de couleurs ? <span class="required">*</span></label><input type="number" id="colorCount" placeholder="Ex: 3" min="1" max="50" oninput="generateColorInputs()" /></div>
+<div id="colorInputsContainer" class="dynamic-inputs-container"></div>
+<div style="margin-top: 20px; display: flex; gap: 10px;"><button class="btn btn-secondary" onclick="goToStep(1)">← Précédent</button><button class="btn btn-primary" onclick="goToStep(3)">Suivant →</button></div>
+</div>
+<div id="step3" class="step-section hidden">
+<div class="form-group"><label>Question 3 : Combien y a-t-il de pointures différentes ? <span class="required">*</span></label><input type="number" id="sizeCount" placeholder="Ex: 5" min="1" max="50" oninput="generateSizeInputs()" /></div>
+<div id="sizeInputsContainer" class="dynamic-inputs-container"></div>
+<div style="margin-top: 20px; display: flex; gap: 10px;"><button class="btn btn-secondary" onclick="goToStep(2)">← Précédent</button><button class="btn btn-primary" onclick="goToStep(4)">Suivant →</button></div>
+</div>
+<div id="step4" class="step-section hidden">
+<div class="form-group"><label>Question 4 : Combien d'unités par variante (même couleur + même pointure) ? <span class="required">*</span></label><input type="number" id="unitsPerVariant" placeholder="Ex: 2" min="1" max="1000" /></div>
+<div class="summary-box">
+<h4>📋 Récapitulatif avant validation</h4>
+<div class="summary-row"><span>Modèle :</span><span id="summaryModel">-</span></div>
+<div class="summary-row"><span>Couleurs :</span><span id="summaryColors">-</span></div>
+<div class="summary-row"><span>Pointures :</span><span id="summarySizes">-</span></div>
+<div class="summary-row"><span>Unités par variante :</span><span id="summaryUnits">-</span></div>
+<div class="summary-row"><span>Total de paires créées :</span><span id="summaryTotal" style="font-weight:800;color:var(--primary);">-</span></div>
+</div>
+<div style="margin-top: 20px; display: flex; gap: 10px;"><button class="btn btn-secondary" onclick="goToStep(3)">← Précédent</button><button class="btn btn-success" onclick="validateModel()">✅ Valider et créer le stock</button></div>
+</div>
+</div>
+<div class="card">
+<div class="card-title"><span class="icon">📋</span>Modèles enregistrés</div>
+<div id="modelsListContainer">
+<div class="empty-state"><div class="icon">📦</div><h3>Aucun modèle enregistré</h3><p>Créez votre premier modèle en utilisant le formulaire ci-dessus.</p></div>
+</div>
+</div>
+</div>
+
+<div id="tab2" class="tab-panel">
+<div class="card">
+<div class="card-title"><span class="icon">🔍</span>Rechercher un produit</div>
+<div class="search-bar">
+<select id="searchModel" onchange="updateSearchOptions()"><option value="">-- Choisir un modèle --</option></select>
+<select id="searchSize"><option value="">-- Choisir une pointure --</option></select>
+<select id="searchColor"><option value="">-- Choisir une couleur --</option></select>
+<button class="btn btn-primary" onclick="searchProduct()">🔍 Rechercher</button>
+</div>
+<div id="searchResult" class="hidden">
+<div class="divider"></div>
+<div id="searchResultContent"></div>
+</div>
+</div>
+<div id="saleModal" class="modal-overlay">
+<div class="modal-content">
+<div class="modal-header"><h3>💰 Valider la vente</h3><button class="modal-close" onclick="closeSaleModal()">&times;</button></div>
+<div id="saleModalContent"></div>
+</div>
+</div>
+<div class="card">
+<div class="card-title"><span class="icon">📦</span>Colis en attente de préparation</div>
+<div id="pendingOrdersContainer">
+<div class="empty-state"><div class="icon">📭</div><h3>Aucun colis en attente</h3><p>Les commandes validées apparaîtront ici.</p></div>
+</div>
+</div>
+<div class="card">
+<div class="card-title"><span class="icon">🔄</span>Réintégrer un retour</div>
+<div class="search-bar">
+<select id="returnModel"><option value="">-- Modèle --</option></select>
+<select id="returnSize"><option value="">-- Pointure --</option></select>
+<select id="returnColor"><option value="">-- Couleur --</option></select>
+<button class="btn btn-warning" onclick="processReturn()">🔄 Réintégrer au stock</button>
+</div>
+</div>
+</div>
+
+<div id="tab3" class="tab-panel">
+<div class="card">
+<div class="card-title"><span class="icon">📅</span>Fiche Journalière</div>
+<div class="date-picker-wrapper">
+<label style="font-weight:600;">Date :</label>
+<input type="date" id="dailyDate" onchange="loadDailySheet()" />
+<button class="btn btn-secondary btn-sm" onclick="setToday()">Aujourd'hui</button>
+</div>
+<div class="grid-2">
+<div class="form-group"><label>Budget publicitaire (USDT)</label><div class="price-input-wrapper"><span class="currency-symbol">$</span><input type="number" id="adBudget" placeholder="0" min="0" step="0.01" value="0" oninput="calculateDailySheet()" /></div></div>
+<div class="form-group"><label>Taux de change USDT → Dinar Algérien</label><input type="number" id="exchangeRate" placeholder="Ex: 242" min="0" step="0.01" value="0" oninput="calculateDailySheet()" /></div>
+<div class="form-group"><label>Dépenses imprévues (DA)</label><div class="price-input-wrapper"><span class="currency-symbol">DA</span><input type="number" id="unexpectedExpenses" placeholder="0" min="0" step="0.01" value="0" oninput="calculateDailySheet()" /></div></div>
+<div class="form-group"><label>Gains supplémentaires (DA)</label><div class="price-input-wrapper"><span class="currency-symbol">DA</span><input type="number" id="extraGains" placeholder="0" min="0" step="0.01" value="0" oninput="calculateDailySheet()" /></div></div>
+</div>
+<div style="margin-top: 10px;"><label style="font-weight:600;margin-bottom:8px;display:block;">Mémo dépenses imprévues</label><textarea id="unexpectedMemo" rows="2" placeholder="Ex: Scotch, frais de transport..." style="resize:vertical;"></textarea></div>
+<div style="margin-top: 16px; text-align: right;"><button class="btn btn-primary" onclick="saveDailySheet()">💾 Sauvegarder la fiche</button></div>
+</div>
+<div class="card">
+<div class="card-title"><span class="icon">📊</span>Résumé Automatique de la Journée</div>
+<div class="grid-4" style="margin-bottom: 20px;">
+<div class="stat-card"><div class="stat-label">Chiffre d'Affaires</div><div class="stat-value" id="statCA">0</div><div class="stat-sub">DA</div></div>
+<div class="stat-card red"><div class="stat-label">Dépenses Totales</div><div class="stat-value" id="statExpenses">0</div><div class="stat-sub">DA</div></div>
+<div class="stat-card green"><div class="stat-label">Bénéfice Net</div><div class="stat-value" id="statProfit">0</div><div class="stat-sub">DA</div></div>
+<div class="stat-card purple"><div class="stat-label">Paires Vendues</div><div class="stat-value" id="statPairs">0</div><div class="stat-sub">aujourd'hui</div></div>
+</div>
+<div class="table-responsive">
+<table>
+<thead><tr><th>Ligne</th><th>Montant (DA)</th><th>Détail</th></tr></thead>
+<tbody id="dailySummaryTable"><tr><td colspan="3" style="text-align:center;color:var(--gray);">Sélectionnez une date pour voir le résumé</td></tr></tbody>
+</table>
+</div>
+<div class="summary-box" style="margin-top: 20px;">
+<h4>📈 Indicateurs clés</h4>
+<div class="summary-row"><span>Prix moyen de vente (toutes ventes du jour) :</span><span id="avgSalePrice">0</span></div>
+<div class="summary-row"><span>Marge moyenne par paire :</span><span id="avgMargin">0</span></div>
+<div class="summary-row"><span>Taux de marge global :</span><span id="marginRate">0%</span></div>
+</div>
+<div style="margin-top: 20px; text-align: center;"><button class="btn btn-primary" onclick="exportDailyPDF()" style="font-size: 1.1rem; padding: 14px 32px;">📄 Exporter en PDF</button></div>
+</div>
+<div class="card">
+<div class="card-title"><span class="icon">📚</span>Historique des fiches journalières</div>
+<div class="table-responsive">
+<table>
+<thead><tr><th>Date</th><th>CA</th><th>Dépenses</th><th>Bénéfice</th><th>Ventes</th><th>Action</th></tr></thead>
+<tbody id="dailyHistoryTable"><tr><td colspan="6" style="text-align:center;color:var(--gray);">Aucune fiche enregistrée</td></tr></tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+const STORAGE_KEYS={MODELS:'ecm_models',STOCK:'ecm_stock',ORDERS:'ecm_orders',DAILY_SHEETS:'ecm_daily_sheets',SALES_HISTORY:'ecm_sales_history'};
+let models=[],stock=[],orders=[],dailySheets={},salesHistory=[];
+
+function loadData(){try{const m=localStorage.getItem(STORAGE_KEYS.MODELS);const s=localStorage.getItem(STORAGE_KEYS.STOCK);const o=localStorage.getItem(STORAGE_KEYS.ORDERS);const d=localStorage.getItem(STORAGE_KEYS.DAILY_SHEETS);const h=localStorage.getItem(STORAGE_KEYS.SALES_HISTORY);if(m)models=JSON.parse(m);if(s)stock=JSON.parse(s);if(o)orders=JSON.parse(o);if(d)dailySheets=JSON.parse(d);if(h)salesHistory=JSON.parse(h)}catch(e){console.error('Erreur chargement:',e)}}
+function saveData(){localStorage.setItem(STORAGE_KEYS.MODELS,JSON.stringify(models));localStorage.setItem(STORAGE_KEYS.STOCK,JSON.stringify(stock));localStorage.setItem(STORAGE_KEYS.ORDERS,JSON.stringify(orders));localStorage.setItem(STORAGE_KEYS.DAILY_SHEETS,JSON.stringify(dailySheets));localStorage.setItem(STORAGE_KEYS.SALES_HISTORY,JSON.stringify(salesHistory))}
+
+function showToast(message,type){type=type||'success';const container=document.getElementById('toastContainer');const toast=document.createElement('div');toast.className='toast toast-'+type;const icons={success:'✅',danger:'❌',warning:'⚠️'};toast.innerHTML='<span>'+(icons[type]||'ℹ️')+'</span> '+message;container.appendChild(toast);setTimeout(function(){toast.style.opacity='0';toast.style.transform='translateX(100px)';setTimeout(function(){toast.remove()},400)},3000)}
+function formatCurrency(value){return new Intl.NumberFormat('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2}).format(value||0)}
+function getTodayString(){return new Date().toISOString().split('T')[0]}
+
+function switchTab(tabId){document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active')});document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active')});document.getElementById(tabId).classList.add('active');document.querySelector('[data-tab="'+tabId+'"]').classList.add('active');if(tabId==='tab1')renderModelsList();if(tabId==='tab2'){updateSearchDropdowns();updateReturnDropdowns();renderPendingOrders()}if(tabId==='tab3'){setToday();renderDailyHistory()}}
+
+let currentStep=1;
+function goToStep(step){if(step===2){const name=document.getElementById('modelName').value.trim();const cost=parseFloat(document.getElementById('modelCostPrice').value);const sell=parseFloat(document.getElementById('modelSellPrice').value);if(!name){showToast('Veuillez entrer le nom du modèle','warning');return}if(!cost||cost<=0){showToast('Veuillez entrer un prix d achat valide','warning');return}if(!sell||sell<=0){showToast('Veuillez entrer un prix de vente valide','warning');return}}if(step===3){const cc=parseInt(document.getElementById('colorCount').value);if(!cc||cc<1){showToast('Veuillez entrer un nombre de couleurs','warning');return}const colors=getColorInputs();if(colors.some(function(c){return!c.trim()})){showToast('Veuillez remplir tous les noms de couleurs','warning');return}}if(step===4){const sc=parseInt(document.getElementById('sizeCount').value);if(!sc||sc<1){showToast('Veuillez entrer un nombre de pointures','warning');return}const sizes=getSizeInputs();if(sizes.some(function(s){return!s.trim()})){showToast('Veuillez remplir toutes les pointures','warning');return}}for(let i=1;i<=4;i++){const dot=document.getElementById('step-dot-'+i);dot.classList.remove('active','completed');if(i<step)dot.classList.add('completed');if(i===step)dot.classList.add('active')}document.querySelectorAll('.step-section').forEach(function(s){s.classList.add('hidden')});document.getElementById('step'+step).classList.remove('hidden');currentStep=step;if(step===4)updateSummary()}
+
+function generateColorInputs(){const count=parseInt(document.getElementById('colorCount').value)||0;const container=document.getElementById('colorInputsContainer');container.innerHTML='';for(let i=0;i<count;i++){const div=document.createElement('div');div.className='dynamic-input-item';div.innerHTML='<span class="index-badge">'+(i+1)+'</span><input type="text" class="color-input" placeholder="Ex: Blanc, Rouge..." />';container.appendChild(div)}}
+function generateSizeInputs(){const count=parseInt(document.getElementById('sizeCount').value)||0;const container=document.getElementById('sizeInputsContainer');container.innerHTML='';for(let i=0;i<count;i++){const div=document.createElement('div');div.className='dynamic-input-item';div.innerHTML='<span class="index-badge">'+(i+1)+'</span><input type="text" class="size-input" placeholder="Ex: 40, 40-41..." />';container.appendChild(div)}}
+function getColorInputs(){return Array.from(document.querySelectorAll('.color-input')).map(function(i){return i.value.trim()})}
+function getSizeInputs(){return Array.from(document.querySelectorAll('.size-input')).map(function(i){return i.value.trim()})}
+
+function updateSummary(){const name=document.getElementById('modelName').value.trim();const colors=getColorInputs();const sizes=getSizeInputs();const units=parseInt(document.getElementById('unitsPerVariant').value)||0;const total=colors.length*sizes.length*units;document.getElementById('summaryModel').textContent=name||'-';document.getElementById('summaryColors').textContent=colors.filter(function(c){return c}).join(', ')||'-';document.getElementById('summarySizes').textContent=sizes.filter(function(s){return s}).join(', ')||'-';document.getElementById('summaryUnits').textContent=units||'-';document.getElementById('summaryTotal').textContent=total>0?total+' paires':'-'}
+
+function validateModel(){const name=document.getElementById('modelName').value.trim();const costPrice=parseFloat(document.getElementById('modelCostPrice').value);const sellPrice=parseFloat(document.getElementById('modelSellPrice').value);const deliveryFee=parseFloat(document.getElementById('modelDeliveryFee').value)||0;const colors=getColorInputs().filter(function(c){return c});const sizes=getSizeInputs().filter(function(s){return s});const unitsPerVariant=parseInt(document.getElementById('unitsPerVariant').value);if(!name||!colors.length||!sizes.length||!unitsPerVariant){showToast('Veuillez remplir tous les champs','warning');return}const modelId='model_'+Date.now();const model={id:modelId,name:name,costPrice:costPrice,sellPrice:sellPrice,deliveryFee:deliveryFee,colors:colors,sizes:sizes,unitsPerVariant:unitsPerVariant,createdAt:new Date().toISOString()};models.push(model);let stockCount=0;for(const color of colors){for(const size of sizes){stock.push({id:'stock_'+Date.now()+'_'+stockCount,modelId:modelId,modelName:name,color:color,size:size,quantity:unitsPerVariant,costPrice:costPrice,sellPrice:sellPrice,deliveryFee:deliveryFee});stockCount++}}saveData();showToast('Modèle "'+name+'" créé avec '+(stockCount*unitsPerVariant)+' paires en stock !');document.getElementById('modelName').value='';document.getElementById('modelCostPrice').value='';document.getElementById('modelSellPrice').value='';document.getElementById('modelDeliveryFee').value='0';document.getElementById('colorCount').value='';document.getElementById('sizeCount').value='';document.getElementById('unitsPerVariant').value='';document.getElementById('colorInputsContainer').innerHTML='';document.getElementById('sizeInputsContainer').innerHTML='';goToStep(1);renderModelsList()}
+
+function renderModelsList(){const container=document.getElementById('modelsListContainer');if(models.length===0){container.innerHTML='<div class="empty-state"><div class="icon">📦</div><h3>Aucun modèle enregistré</h3><p>Créez votre premier modèle en utilisant le formulaire ci-dessus.</p></div>';return}container.innerHTML='';for(const model of models){const totalStock=stock.filter(function(s){return s.modelId===model.id}).reduce(function(sum,s){return sum+s.quantity},0);const variants=stock.filter(function(s){return s.modelId===model.id}).length;const div=document.createElement('div');div.className='model-list-item';div.innerHTML='<div class="model-info"><strong>'+model.name+'</strong><span>'+model.colors.length+' couleurs • '+model.sizes.length+' pointures • '+variants+' variantes • '+totalStock+' paires en stock</span><span style="display:block;margin-top:4px;font-size:0.8rem;">Achat: DA'+model.costPrice+' | Vente: DA'+model.sellPrice+' | Livraison: DA'+model.deliveryFee+'</span></div><div class="model-actions"><button class="btn btn-danger btn-sm" data-model-id="'+model.id+'">🗑️</button></div>';div.querySelector('[data-model-id]').addEventListener('click',function(){deleteModel(model.id)});container.appendChild(div)}}
+
+function deleteModel(modelId){if(!confirm('Êtes-vous sûr de vouloir supprimer ce modèle et tout son stock ?'))return;models=models.filter(function(m){return m.id!==modelId});stock=stock.filter(function(s){return s.modelId!==modelId});saveData();showToast('Modèle supprimé','success');renderModelsList()}
+
+function updateSearchDropdowns(){const modelSelect=document.getElementById('searchModel');const returnModel=document.getElementById('returnModel');modelSelect.innerHTML='<option value="">-- Choisir un modèle --</option>';returnModel.innerHTML='<option value="">-- Modèle --</option>';for(const model of models){const opt=document.createElement('option');opt.value=model.id;opt.textContent=model.name;modelSelect.appendChild(opt);const opt2=document.createElement('option');opt2.value=model.id;opt2.textContent=model.name;returnModel.appendChild(opt2)}}
+
+function updateSearchOptions(){const modelId=document.getElementById('searchModel').value;const sizeSelect=document.getElementById('searchSize');const colorSelect=document.getElementById('searchColor');sizeSelect.innerHTML='<option value="">-- Choisir une pointure --</option>';colorSelect.innerHTML='<option value="">-- Choisir une couleur --</option>';if(!modelId)return;const modelStock=stock.filter(function(s){return s.modelId===modelId});const sizes=[...new Set(modelStock.map(function(s){return s.size}))];const colors=[...new Set(modelStock.map(function(s){return s.color}))];for(const size of sizes){const opt=document.createElement('option');opt.value=size;opt.textContent=size;sizeSelect.appendChild(opt)}for(const color of colors){const opt=document.createElement('option');opt.value=color;opt.textContent=color;colorSelect.appendChild(opt)}}
+
+function updateReturnDropdowns(){const modelId=document.getElementById('returnModel').value;const sizeSelect=document.getElementById('returnSize');const colorSelect=document.getElementById('returnColor');sizeSelect.innerHTML='<option value="">-- Pointure --</option>';colorSelect.innerHTML='<option value="">-- Couleur --</option>';if(!modelId)return;const modelStock=stock.filter(function(s){return s.modelId===modelId});const sizes=[...new Set(modelStock.map(function(s){return s.size}))];const colors=[...new Set(modelStock.map(function(s){return s.color}))];for(const size of sizes){const opt=document.createElement('option');opt.value=size;opt.textContent=size;sizeSelect.appendChild(opt)}for(const color of colors){const opt=document.createElement('option');opt.value=color;opt.textContent=color;colorSelect.appendChild(opt)}}
+
+function searchProduct(){const modelId=document.getElementById('searchModel').value;const size=document.getElementById('searchSize').value;const color=document.getElementById('searchColor').value;if(!modelId||!size||!color){showToast('Veuillez sélectionner un modèle, une pointure et une couleur','warning');return}const item=stock.find(function(s){return s.modelId===modelId&&s.size===size&&s.color===color});const resultDiv=document.getElementById('searchResult');const contentDiv=document.getElementById('searchResultContent');resultDiv.classList.remove('hidden');if(!item){contentDiv.innerHTML='<div class="alert alert-danger"><span>❌</span> Produit introuvable dans le stock.</div>';return}const model=models.find(function(m){return m.id===modelId});if(item.quantity>0){contentDiv.innerHTML='<div class="alert alert-success"><span>✅</span> <strong>DISPONIBLE</strong> — '+item.quantity+' unité(s) en stock</div><div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-top:16px;"><div><strong style="font-size:1.2rem;">'+model.name+'</strong><br><span style="color:var(--gray);">Couleur: '+item.color+' | Pointure: '+item.size+'</span></div><div style="margin-left:auto;"><span style="font-size:1.5rem;font-weight:800;color:var(--primary);">DA'+item.sellPrice+'</span><span style="color:var(--gray);font-size:0.9rem;">prix standard</span></div></div><div style="margin-top:16px;"><button class="btn btn-success" style="width:100%;padding:14px;font-size:1.1rem;" id="btn-validate-sale">🛒 Valider la commande</button></div>';document.getElementById('btn-validate-sale').addEventListener('click',function(){openSaleModal(item.id)})}else{const alternatives=stock.filter(function(s){return s.modelId===modelId&&s.size===size&&s.color!==color&&s.quantity>0});let altHtml='';if(alternatives.length>0){altHtml='<div class="upsell-section"><h4>🎯 Alternatives disponibles pour la pointure '+size+'</h4>';for(const alt of alternatives){altHtml+='<div class="upsell-item" style="margin-bottom:8px;"><span><strong>'+alt.color+'</strong> — '+alt.quantity+' en stock</span><button class="btn btn-primary btn-sm btn-choose-alt" data-stock-id="'+alt.id+'">Choisir</button></div>'}altHtml+='</div>'}else{altHtml='<div class="alert alert-warning"><span>⚠️</span> Aucune alternative disponible pour cette pointure.</div>'}contentDiv.innerHTML='<div class="alert alert-danger" style="font-size:1.1rem;"><span>🚫</span> <strong>RUPTURE DE STOCK</strong></div><div style="margin:12px 0;"><strong>'+model.name+'</strong> — '+item.color+' / '+item.size+'</div>'+altHtml;document.querySelectorAll('.btn-choose-alt').forEach(function(btn){btn.addEventListener('click',function(){openSaleModal(btn.dataset.stockId)})})}}
+
+let currentSaleItemId=null;
+function openSaleModal(stockItemId){currentSaleItemId=stockItemId;const item=stock.find(function(s){return s.id===stockItemId});const model=models.find(function(m){return m.id===item.modelId});const modal=document.getElementById('saleModal');const content=document.getElementById('saleModalContent');content.innerHTML='<div style="margin-bottom:20px;"><strong style="font-size:1.2rem;">'+model.name+'</strong><br><span style="color:var(--gray);">'+item.color+' — Pointure '+item.size+'</span><br><span style="color:var(--gray);">Stock disponible: '+item.quantity+'</span></div><div class="form-group"><label>Prix de vente réel payé par le client</label><div class="price-input-wrapper"><span class="currency-symbol">DA</span><input type="number" id="salePriceInput" value="'+item.sellPrice+'" min="0" step="0.01" /></div><small style="color:var(--gray);">Prix standard: DA'+item.sellPrice+' — Vous pouvez modifier si négociation</small></div><div class="form-group"><label>Frais de livraison</label><div class="price-input-wrapper"><span class="currency-symbol">DA</span><input type="number" id="saleDeliveryInput" value="'+item.deliveryFee+'" min="0" step="0.01" /></div></div><div style="display:flex;gap:10px;margin-top:20px;"><button class="btn btn-secondary" style="flex:1;" id="btn-cancel-sale">Annuler</button><button class="btn btn-success" style="flex:1;" id="btn-confirm-sale">✅ Confirmer la vente</button></div>';document.getElementById('btn-cancel-sale').addEventListener('click',closeSaleModal);document.getElementById('btn-confirm-sale').addEventListener('click',confirmSale);modal.classList.add('active')}
+function closeSaleModal(){document.getElementById('saleModal').classList.remove('active');currentSaleItemId=null}
+function confirmSale(){if(!currentSaleItemId)return;const item=stock.find(function(s){return s.id===currentSaleItemId});if(!item||item.quantity<1){showToast('Stock insuffisant','danger');closeSaleModal();return}const salePrice=parseFloat(document.getElementById('salePriceInput').value)||item.sellPrice;const deliveryFee=parseFloat(document.getElementById('saleDeliveryInput').value)||item.deliveryFee;item.quantity-=1;const order={id:'order_'+Date.now(),stockItemId:currentSaleItemId,modelId:item.modelId,modelName:item.modelName,color:item.color,size:item.size,salePrice:salePrice,costPrice:item.costPrice,deliveryFee:deliveryFee,status:'pending',date:getTodayString(),createdAt:new Date().toISOString()};orders.push(order);salesHistory.push({orderId:order.id,date:order.date,modelName:item.modelName,color:item.color,size:item.size,salePrice:salePrice,costPrice:item.costPrice,deliveryFee:deliveryFee,profit:salePrice-item.costPrice-deliveryFee});saveData();showToast('Vente confirmée ! '+item.modelName+' ('+item.color+' / '+item.size+')');closeSaleModal();renderPendingOrders();searchProduct()}
+
+function renderPendingOrders(){const container=document.getElementById('pendingOrdersContainer');const pending=orders.filter(function(o){return o.status==='pending'});if(pending.length===0){container.innerHTML='<div class="empty-state"><div class="icon">📭</div><h3>Aucun colis en attente</h3><p>Les commandes validées apparaîtront ici.</p></div>';return}container.innerHTML='';for(const order of pending){const div=document.createElement('div');div.className='order-item';div.innerHTML='<div class="order-info"><strong>'+order.modelName+'</strong><br><span>'+order.color+' — Pointure '+order.size+' — Prix vendu: DA'+order.salePrice+'</span><br><span style="font-size:0.8rem;color:var(--gray);">Commande #'+order.id.slice(-6)+' — '+order.date+'</span></div><div class="order-actions"><button class="btn btn-success btn-sm btn-ship" data-order-id="'+order.id+'">📦 Expédié</button><button class="btn btn-danger btn-sm btn-cancel" data-order-id="'+order.id+'">❌ Annuler</button></div>';div.querySelector('.btn-ship').addEventListener('click',function(){shipOrder(order.id)});div.querySelector('.btn-cancel').addEventListener('click',function(){cancelOrder(order.id)});container.appendChild(div)}}
+
+function shipOrder(orderId){const order=orders.find(function(o){return o.id===orderId});if(!order)return;order.status='shipped';order.shippedAt=new Date().toISOString();saveData();showToast('Colis marqué comme expédié !');renderPendingOrders()}
+function cancelOrder(orderId){if(!confirm('Annuler cette commande et réintégrer le stock ?'))return;const order=orders.find(function(o){return o.id===orderId});if(!order)return;const item=stock.find(function(s){return s.id===order.stockItemId});if(item)item.quantity+=1;orders=orders.filter(function(o){return o.id!==orderId});salesHistory=salesHistory.filter(function(s){return s.orderId!==orderId});saveData();showToast('Commande annulée et stock réintégré','warning');renderPendingOrders()}
+
+function processReturn(){const modelId=document.getElementById('returnModel').value;const size=document.getElementById('returnSize').value;const color=document.getElementById('returnColor').value;if(!modelId||!size||!color){showToast('Veuillez sélectionner le modèle, la pointure et la couleur du retour','warning');return}const item=stock.find(function(s){return s.modelId===modelId&&s.size===size&&s.color===color});if(!item){showToast('Produit introuvable dans le stock','danger');return}item.quantity+=1;saveData();showToast('Retour réintégré ! '+item.modelName+' ('+color+' / '+size+') — Stock actuel: '+item.quantity,'success');document.getElementById('returnModel').value='';document.getElementById('returnSize').innerHTML='<option value="">-- Pointure --</option>';document.getElementById('returnColor').innerHTML='<option value="">-- Couleur --</option>'}
+
+function setToday(){document.getElementById('dailyDate').value=getTodayString();loadDailySheet()}
+function loadDailySheet(){const date=document.getElementById('dailyDate').value;if(!date)return;const sheet=dailySheets[date]||{adBudget:0,exchangeRate:0,unexpectedExpenses:0,unexpectedMemo:'',extraGains:0};document.getElementById('adBudget').value=sheet.adBudget||0;document.getElementById('exchangeRate').value=sheet.exchangeRate||0;document.getElementById('unexpectedExpenses').value=sheet.unexpectedExpenses||0;document.getElementById('unexpectedMemo').value=sheet.unexpectedMemo||'';document.getElementById('extraGains').value=sheet.extraGains||0;calculateDailySheet()}
+function saveDailySheet(){const date=document.getElementById('dailyDate').value;if(!date){showToast('Veuillez sélectionner une date','warning');return}dailySheets[date]={adBudget:parseFloat(document.getElementById('adBudget').value)||0,exchangeRate:parseFloat(document.getElementById('exchangeRate').value)||0,unexpectedExpenses:parseFloat(document.getElementById('unexpectedExpenses').value)||0,unexpectedMemo:document.getElementById('unexpectedMemo').value,extraGains:parseFloat(document.getElementById('extraGains').value)||0,savedAt:new Date().toISOString()};saveData();showToast('Fiche journalière sauvegardée !');renderDailyHistory()}
+
+function calculateDailySheet(){const date=document.getElementById('dailyDate').value;if(!date)return;const adBudget=parseFloat(document.getElementById('adBudget').value)||0;const exchangeRate=parseFloat(document.getElementById('exchangeRate').value)||0;const unexpectedExpenses=parseFloat(document.getElementById('unexpectedExpenses').value)||0;const extraGains=parseFloat(document.getElementById('extraGains').value)||0;const daySales=salesHistory.filter(function(s){return s.date===date});const ca=daySales.reduce(function(sum,s){return sum+s.salePrice},0);const pairsSold=daySales.length;const costOfGoods=daySales.reduce(function(sum,s){return sum+s.costPrice},0);const deliveryFees=daySales.reduce(function(sum,s){return sum+s.deliveryFee},0);const adLocal=adBudget*exchangeRate;const totalExpenses=costOfGoods+adLocal+unexpectedExpenses+deliveryFees;const netProfit=ca-totalExpenses+extraGains;const avgPrice=pairsSold>0?ca/pairsSold:0;const avgMargin=pairsSold>0?(ca-costOfGoods-deliveryFees)/pairsSold:0;const marginRate=ca>0?((ca-costOfGoods-deliveryFees)/ca)*100:0;document.getElementById('statCA').textContent=formatCurrency(ca);document.getElementById('statExpenses').textContent=formatCurrency(totalExpenses);document.getElementById('statProfit').textContent=formatCurrency(netProfit);document.getElementById('statPairs').textContent=pairsSold;const tbody=document.getElementById('dailySummaryTable');tbody.innerHTML='<tr><td><strong>Chiffre d Affaires (Ventes)</strong></td><td style="color:var(--primary);font-weight:700;">'+formatCurrency(ca)+'</td><td>'+pairsSold+' paire(s) vendue(s)</td></tr><tr><td>Coût d Achat Marchandise</td><td style="color:var(--danger);">-'+formatCurrency(costOfGoods)+'</td><td>'+pairsSold+' × prix d achat</td></tr><tr><td>Frais de Livraison</td><td style="color:var(--danger);">-'+formatCurrency(deliveryFees)+'</td><td>'+pairsSold+' commande(s)</td></tr><tr><td>Dépense Publicitaire (locale)</td><td style="color:var(--danger);">-'+formatCurrency(adLocal)+'</td><td>$'+adBudget+' USDT × '+exchangeRate+'</td></tr><tr><td>Dépenses Imprévues</td><td style="color:var(--danger);">-'+formatCurrency(unexpectedExpenses)+'</td><td>'+(document.getElementById('unexpectedMemo').value||'-')+'</td></tr><tr><td>Gains Supplémentaires</td><td style="color:var(--secondary);font-weight:600;">+'+formatCurrency(extraGains)+'</td><td>Rentrées exceptionnelles</td></tr><tr style="background:#f8fafc;font-weight:700;font-size:1.05rem;"><td><strong>BÉNÉFICE NET RÉEL</strong></td><td style="color:'+(netProfit>=0?'var(--secondary)':'var(--danger)')+';font-weight:800;">'+(netProfit>=0?'+':'')+formatCurrency(netProfit)+'</td><td>CA - Dépenses + Gains</td></tr>';document.getElementById('avgSalePrice').textContent=formatCurrency(avgPrice);document.getElementById('avgMargin').textContent=formatCurrency(avgMargin);document.getElementById('marginRate').textContent=marginRate.toFixed(1)+'%'}
+
+function renderDailyHistory(){const tbody=document.getElementById('dailyHistoryTable');const dates=Object.keys(dailySheets).sort().reverse();if(dates.length===0){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--gray);">Aucune fiche enregistrée</td></tr>';return}tbody.innerHTML='';for(const date of dates){const sheet=dailySheets[date];const daySales=salesHistory.filter(function(s){return s.date===date});const ca=daySales.reduce(function(sum,s){return sum+s.salePrice},0);const costOfGoods=daySales.reduce(function(sum,s){return sum+s.costPrice},0);const deliveryFees=daySales.reduce(function(sum,s){return sum+s.deliveryFee},0);const adLocal=(sheet.adBudget||0)*(sheet.exchangeRate||0);const totalExp=costOfGoods+adLocal+(sheet.unexpectedExpenses||0)+deliveryFees;const profit=ca-totalExp+(sheet.extraGains||0);const pairs=daySales.length;const tr=document.createElement('tr');tr.innerHTML='<td><strong>'+date+'</strong></td><td>'+formatCurrency(ca)+'</td><td style="color:var(--danger);">'+formatCurrency(totalExp)+'</td><td style="color:'+(profit>=0?'var(--secondary)':'var(--danger)')+';font-weight:600;">'+(profit>=0?'+':'')+formatCurrency(profit)+'</td><td>'+pairs+'</td><td><button class="btn btn-primary btn-sm btn-view-sheet" data-date="'+date+'">Voir</button><button class="btn btn-danger btn-sm btn-delete-sheet" data-date="'+date+'">🗑️</button></td>';tr.querySelector('.btn-view-sheet').addEventListener('click',function(){loadDateSheet(date)});tr.querySelector('.btn-delete-sheet').addEventListener('click',function(){deleteDailySheet(date)});tbody.appendChild(tr)}}
+
+function loadDateSheet(date){document.getElementById('dailyDate').value=date;loadDailySheet();switchTab('tab3')}
+function deleteDailySheet(date){if(!confirm('Supprimer cette fiche journalière ?'))return;delete dailySheets[date];saveData();showToast('Fiche supprimée');renderDailyHistory()}
+
+function exportDailyPDF(){const date=document.getElementById('dailyDate').value;if(!date){showToast('Veuillez sélectionner une date','warning');return}const{jsPDF}=window.jspdf;const doc=new jsPDF();doc.setFontSize(20);doc.setTextColor(99,102,241);doc.text('Fiche Journalière — NLS Logistique',105,20,{align:'center'});doc.setFontSize(12);doc.setTextColor(100);doc.text('Date: '+date,105,30,{align:'center'});const sheet=dailySheets[date]||{};const daySales=salesHistory.filter(function(s){return s.date===date});const ca=daySales.reduce(function(sum,s){return sum+s.salePrice},0);const pairsSold=daySales.length;const costOfGoods=daySales.reduce(function(sum,s){return sum+s.costPrice},0);const deliveryFees=daySales.reduce(function(sum,s){return sum+s.deliveryFee},0);const adLocal=(sheet.adBudget||0)*(sheet.exchangeRate||0);const unexpected=sheet.unexpectedExpenses||0;const extraGains=sheet.extraGains||0;const totalExpenses=costOfGoods+adLocal+unexpected+deliveryFees;const netProfit=ca-totalExpenses+extraGains;const avgPrice=pairsSold>0?ca/pairsSold:0;const tableData=[['Chiffre d Affaires (Ventes)',formatCurrency(ca),pairsSold+' paire(s) vendue(s)'],['Coût d Achat Marchandise','-'+formatCurrency(costOfGoods),pairsSold+' × prix d achat'],['Frais de Livraison','-'+formatCurrency(deliveryFees),pairsSold+' commande(s)'],['Dépense Publicitaire (locale)','-'+formatCurrency(adLocal),'$'+(sheet.adBudget||0)+' USDT × '+(sheet.exchangeRate||0)],['Dépenses Imprévues','-'+formatCurrency(unexpected),sheet.unexpectedMemo||'-'],['Gains Supplémentaires','+'+formatCurrency(extraGains),'Rentrées exceptionnelles'],['BÉNÉFICE NET RÉEL',(netProfit>=0?'+':'')+formatCurrency(netProfit),'CA - Dépenses + Gains']];doc.autoTable({startY:40,head:[['Ligne','Montant (DA)','Détail']],body:tableData,theme:'grid',headStyles:{fillColor:[99,102,241],textColor:255,fontStyle:'bold'},bodyStyles:{fontSize:10},alternateRowStyles:{fillColor:[248,250,252]},columnStyles:{0:{fontStyle:'bold',cellWidth:70},1:{cellWidth:50,halign:'right'},2:{cellWidth:70}}});const finalY=doc.lastAutoTable.finalY+15;doc.setFontSize(12);doc.setTextColor(30,41,59);doc.text('Indicateurs clés:',14,finalY);doc.setFontSize(10);doc.text('Prix moyen des ventes: '+formatCurrency(avgPrice),14,finalY+10);doc.text('Marge moyenne par paire: '+formatCurrency(pairsSold>0?(ca-costOfGoods-deliveryFees)/pairsSold:0),14,finalY+18);doc.text('Taux de marge global: '+(ca>0?(((ca-costOfGoods-deliveryFees)/ca)*100).toFixed(1):0)+'%',14,finalY+26);doc.setFontSize(9);doc.setTextColor(150);doc.text('Généré par NLS Logistique — developed by Safwann Nait-chabane',105,280,{align:'center'});doc.save('Fiche_Journaliere_'+date+'.pdf');showToast('PDF exporté avec succès !')}
+
+document.addEventListener('DOMContentLoaded',function(){loadData();setToday();renderModelsList();renderDailyHistory();document.getElementById('returnModel').addEventListener('change',updateReturnDropdowns)});
+document.addEventListener('click',function(e){const modal=document.getElementById('saleModal');if(e.target===modal)closeSaleModal()});
+</script>
+</body>
+</html>
